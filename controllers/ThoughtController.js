@@ -4,30 +4,30 @@ const User = require('../models/User')
 const { Op } = require('sequelize')
 
 module.exports = class ThoughtController{
-    static async dashboard(req, res){
+    static async dashboard(req, res) {
         const userId = req.session.userid
-
+    
         const user = await User.findOne({
-            where:{
-                id:userId,
-            },
-            include: Thought,
-            plain: true,
+          where: {
+            id: userId,
+          },
+          include: Thought,
+          plain: true,
         })
-
-        const thoughts = user.Thought.map((result) => result.dataValues)
-
-        let emptyThoughts = true
-
-        if(thoughts.length > 0){
-            emptyThoughts = false
+    
+        const thoughts = user.Thoughts.map((result) => result.dataValues)
+    
+        let emptyToughts = true
+    
+        if (thoughts.length > 0) {
+          emptyToughts = false
         }
-
+    
         console.log(thoughts)
-        console.log(emptyThoughts)
-        
-        res.render('thoughts/dashboard',{thoughts, emptyThoughts})
-    }
+        console.log(emptyToughts)
+    
+        res.render('thoughts/dashboard', { thoughts, emptyToughts })
+      }
 
     static showThoughts(req, res){
         console.log(req.query)
@@ -104,5 +104,23 @@ module.exports = class ThoughtController{
             res.render('thoughts/edit',{thought})
         })
         .catch((err) => console.log(err))
+    }
+
+    static updateThoughtPost(req, res){
+        const id = req.body.id
+
+        const thought = {
+            title: req.body.title,
+            description: req.body.description
+        }
+
+        Thought.update(thought, {where:{id:id}})
+        .then((thought) => {
+            req.flash('message', 'Pensamento alterado com sucesso!')
+            req.session.save(() =>{
+                res.render('thought/dashboard')
+            })
+        })
+        .catch((err) => console.error(err))
     }
 }
